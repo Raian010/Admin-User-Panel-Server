@@ -28,7 +28,25 @@ async function run() {
     // await client.connect();
 
     const usersCollection = client.db("assignmentDb").collection("subscribe");
+    const trainerCollection = client.db("assignmentDb").collection("trainer");
+    const joiningCollection = client.db("assignmentDb").collection("join");
 
+
+    // Joining in the programme
+    app.post('/join',async(req,res) => {
+      const user = req.body;
+      const result = await joiningCollection.insertOne(user);
+      res.send(result);
+    })
+
+    // apply for trainers api
+    app.post('/trainer', async(req,res) => {
+      const trainer = req.body;
+      const result = await trainerCollection.insertOne(trainer);
+      res.send(result);
+    })
+
+    // subscribe
     app.post('/subscribe',async(req,res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
