@@ -30,7 +30,13 @@ async function run() {
     const usersCollection = client.db("assignmentDb").collection("subscribe");
     const trainerCollection = client.db("assignmentDb").collection("trainer");
     const joiningCollection = client.db("assignmentDb").collection("join");
+    const classesCollection = client.db("assignmentDb").collection("class");
 
+    // Classes api collection
+    app.get('/class',async(req,res) => {
+      const result = await classesCollection.find().toArray();
+      res.send(result);
+    })
 
     // Joining in the programme
     app.post('/join',async(req,res) => {
