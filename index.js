@@ -31,6 +31,20 @@ async function run() {
     const trainerCollection = client.db("assignmentDb").collection("trainer");
     const joiningCollection = client.db("assignmentDb").collection("join");
     const classesCollection = client.db("assignmentDb").collection("class");
+    const postsCollection = client.db("assignmentDb").collection("posts");
+
+    // posts api
+    app.get('/posts',async(req,res) => {
+      const page = parseInt(req.query.page) || 0;
+      const size = parseInt(req.query.size) || 10;
+      const result = await postsCollection.find().skip(page * size).limit(size).toArray();
+      res.send(result); 
+    }) 
+
+    app.get('/postscount', async(req,res) => {
+      const count = await postsCollection.estimatedDocumentCount();
+      res.send({count})
+    })
 
     // Classes api collection
     app.get('/class',async(req,res) => {
