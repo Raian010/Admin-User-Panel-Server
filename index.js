@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -27,11 +28,72 @@ async function run() {
   try {
     // await client.connect();
 
-    const usersCollection = client.db("assignmentDb").collection("subscribe");
+    const subscribeCollection = client.db("assignmentDb").collection("subscribe");
     const trainerCollection = client.db("assignmentDb").collection("trainer");
     const joiningCollection = client.db("assignmentDb").collection("join");
     const classesCollection = client.db("assignmentDb").collection("class");
     const postsCollection = client.db("assignmentDb").collection("posts");
+    const trainersCollection = client.db("assignmentDb").collection("trainers");
+    const usersCollection = client.db("assignmentDb").collection("users");
+
+    // Auth Middleware
+
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    }); 
+
+    const verifyToken = (req, res, next) => {
+      console.log(req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "access forbidden" });
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).send({ message: "forbidden" });
+        }
+        req.decoded = decoded;
+        next(); 
+      });
+    };
+
+    // Checking is Admin
+    app.get("/users/:email", verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden" });
+      }
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+      res.send({ admin });
+    });
+
+    // Users Registering api
+
+    app.get("/users",async(req,res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    })
+
+    app.post("/users",async(req,res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    })
+
+    // Already trainers api
+    app.get('/trainers',async(req,res) => {
+      const result = await trainersCollection.find().toArray();
+      res.send(result);
+    }) 
 
     // posts api
     app.get('/posts',async(req,res) => {
@@ -60,6 +122,12 @@ async function run() {
     })
 
     // apply for trainers api
+
+    app.get('/trainer',async(req,res) => {
+      const result = await trainerCollection.find().toArray();
+      res.send(result);
+    })
+
     app.post('/trainer', async(req,res) => {
       const trainer = req.body;
       const result = await trainerCollection.insertOne(trainer);
@@ -67,6 +135,12 @@ async function run() {
     })
 
     // subscribe
+
+    app.get('/subscribe',async(req,res) => {
+      const result = await subscribeCollection.find().toArray();
+      res.send(result)
+    })
+
     app.post('/subscribe',async(req,res) => {
       const user = req.body;
       const result = await usersCollection.insertOne(user);
