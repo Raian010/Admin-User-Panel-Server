@@ -118,6 +118,7 @@ async function run() {
       res.send(result); 
     }) 
 
+    // Count the post numbers
     app.get('/postscount', async(req,res) => {
       const count = await postsCollection.estimatedDocumentCount();
       res.send({count})
