@@ -61,20 +61,7 @@ async function run() {
       });
     };
 
-    // Checking is Admin
-    app.get("/users/:email", verifyToken, async (req, res) => {
-      const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return res.status(403).send({ message: "forbidden" });
-      }
-      const query = { email: email };
-      const user = await userCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user?.role === "admin";
-      }
-      res.send({ admin });
-    });
+    
 
     // Users Registering api
 
@@ -82,6 +69,33 @@ async function run() {
       const result = await usersCollection.find().toArray();
       res.send(result);
     })
+
+    // Checking is Admin
+    app.get("/users/:email",verifyToken, async (req, res) => {
+      const email = req.params.email;
+      if (email !== req.decoded.email) {
+        return res.status(403).send({ message: "forbidden" });
+      }
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      let admin = false;
+      if (user) {  
+        admin = user?.role === "admin";
+      }
+      res.send({ admin });
+    });
+
+    app.patch("/users/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
 
     app.post("/users",async(req,res) => {
       const user = req.body;
