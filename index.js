@@ -85,6 +85,7 @@ async function run() {
       res.send({ admin });
     });
 
+
     app.patch("/users/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -129,6 +130,14 @@ async function run() {
     })
 
     // Joining in the programme
+
+    app.get('/join/:email',async(req,res) => {
+      const email = req.params.email;
+      const query = {email: email}
+      const result = await joiningCollection.find(query).toArray();
+      res.send(result);
+    })
+
     app.post('/join',async(req,res) => {
       const user = req.body;
       const result = await joiningCollection.insertOne(user);
