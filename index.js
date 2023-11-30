@@ -139,6 +139,7 @@ async function run() {
       res.send(result);
     })
 
+    // posting to join
     app.post('/join',async(req,res) => {
       const user = req.body;
       const result = await joiningCollection.insertOne(user);
